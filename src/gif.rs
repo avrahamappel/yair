@@ -41,7 +41,7 @@ impl Parse for Version {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct ColorTable {
     colors: Vec<Vec<u8>>,
 }
@@ -101,7 +101,7 @@ impl Parse for LogicalScreenDescriptor {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct ImageDescriptor {
     position: (u16, u16),
     width: u16,
@@ -173,7 +173,7 @@ impl Parse for SubBlock {
 
 type SubBlocks = Vec<SubBlock>;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct ImageData {
     bit_width: u8,
     data: SubBlocks,
@@ -191,7 +191,7 @@ impl Parse for ImageData {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct Image {
     image_descriptor: ImageDescriptor,
     image_data: ImageData,
@@ -209,7 +209,7 @@ impl Parse for Image {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum ExtensionType {
     GraphicControl,
     Unknown,
@@ -223,7 +223,7 @@ impl From<u8> for ExtensionType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct Extension {
     ext_type: ExtensionType,
     data: SubBlocks,
@@ -241,7 +241,7 @@ impl Parse for Extension {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum Block {
     Image(Image),
     Extension(Extension),
@@ -302,6 +302,27 @@ mod tests {
                 data: vec![b'a', b'b', b'c']
             },
             SubBlock::parse(b"abc\0").unwrap().1
+        );
+    }
+
+    #[test]
+    fn parse_extension_block() {
+        assert_eq!(
+            Block::Extension(Extension {
+                ext_type: ExtensionType::Unknown,
+                data: vec![
+                    SubBlock {
+                        data: b"f7eyf8e7y".as_slice().to_vec(),
+                    },
+                    SubBlock {
+                        data: b"h3872h".as_slice().to_vec(),
+                    },
+                    SubBlock {
+                        data: b"he2187".as_slice().to_vec()
+                    },
+                ]
+            }),
+            Block::parse(b"!2f7eyf8e7y\0h3872h\0he2187\0").unwrap().1
         );
     }
 }
