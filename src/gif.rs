@@ -3,7 +3,7 @@
 #![allow(unused)]
 
 use nom::branch::alt;
-use nom::bytes::complete::{is_a, tag, take, take_until1};
+use nom::bytes::complete::{is_a, is_not, tag, take, take_till1, take_until1, take_while1};
 use nom::combinator::{map, map_res};
 use nom::multi::{count, many1};
 use nom::sequence::{pair, separated_pair, terminated, tuple};
@@ -165,9 +165,12 @@ struct SubBlock {
 
 impl Parse for SubBlock {
     fn parse(input: &[u8]) -> IResult<&[u8], Self> {
-        map(take_until1(b"\0".as_slice()), |data: &[u8]| Self {
-            data: data.to_vec(),
-        })(input)
+        map(
+            terminated(is_not(b"\0".as_slice()), tag(b"\0")),
+            |data: &[u8]| Self {
+                data: data.to_vec(),
+            },
+        )(input)
     }
 }
 
@@ -212,6 +215,7 @@ impl Parse for Image {
 #[derive(Debug, PartialEq, Eq)]
 enum ExtensionType {
     GraphicControl,
+    // TODO store byte
     Unknown,
 }
 
@@ -250,8 +254,11 @@ enum Block {
 impl Parse for Block {
     fn parse(input: &[u8]) -> IResult<&[u8], Self> {
         map_res(
-            pair(is_a(b",!".as_slice()), take_until1(b",!;".as_slice())),
-            |(sent, block): (&[u8], &[u8])| match sent[0] {
+            pair(
+                is_a(b",!".as_slice()),
+                take_while1(|b| !b",!;".contains(&b)),
+            ),
+            |(snt, block): (&[u8], &[u8])| match snt[0] {
                 b',' => Image::parse(block).map(|(_, img)| Self::Image(img)),
                 b'!' => Extension::parse(block).map(|(_, ext)| Self::Extension(ext)),
                 _ => unreachable!(),
