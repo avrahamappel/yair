@@ -14,6 +14,7 @@
       {
         defaultPackage = naersk-lib.buildPackage ./.;
         devShell = with pkgs; mkShell {
+          nativeBuildInputs = [ cmake fontconfig pkg-config ];
           buildInputs = [ cargo rustc rustfmt pre-commit rustPackages.clippy rust-analyzer ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };

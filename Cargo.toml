@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 nom = "7.1.1"
+pixels = "0.10.0"
+winit = "0.27.5"
