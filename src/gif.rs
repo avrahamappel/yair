@@ -56,7 +56,7 @@ impl ColorTable {
 
 /// Highest bit indicates presence, lowest three bits indicate length
 fn color_table_spec(byte: u8) -> Option<usize> {
-    ((byte | 0b10000000) >> 7 == 1).then_some(((byte | 0b00000111) as usize * 255) + 1)
+    ((byte & 0b10000000) >> 7 == 1).then_some(((byte & 0b00000111) as usize * 255) + 1)
 }
 
 #[derive(Debug)]
