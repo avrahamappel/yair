@@ -1,3 +1,4 @@
+mod bmp;
 mod gif;
 
 use crate::gif::{Gif, Parse};
